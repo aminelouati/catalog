@@ -25,8 +25,11 @@
  */
 package org.ow2.proactive.catalog.service.dependencygraph;
 
-import com.google.common.graph.MutableValueGraph;
-import com.google.common.graph.ValueGraphBuilder;
+import org.apache.log4j.Logger;
+
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.MutableGraph;
+
 
 /**
  * @author ActiveEon Team
@@ -34,9 +37,7 @@ import com.google.common.graph.ValueGraphBuilder;
  */
 public class DependencyGraphHolder {
 
-    private static final boolean DEPENDS_ON = true;
-
-    private static final boolean CALLED_BY = false;
+    private static final Logger logger = Logger.getLogger("DependencyGraphHolder");
 
     private DependencyGraphHolder() {
 
@@ -44,7 +45,7 @@ public class DependencyGraphHolder {
 
     private static final DependencyGraphHolder INSTANCE = new DependencyGraphHolder();
 
-    private final MutableValueGraph<GraphNode, Boolean> dependencyGraph = ValueGraphBuilder.directed().build();
+    private final MutableGraph<GraphNode> dependencyGraph = GraphBuilder.directed().build();
 
 
     public static DependencyGraphHolder getInstance() {
@@ -52,15 +53,22 @@ public class DependencyGraphHolder {
     }
 
     public boolean addNode(GraphNode graphNode) {
+        logger.info("A new graph node " + graphNode.toString() + " is added to the dependency matrix");
         return dependencyGraph.addNode(graphNode);
     }
 
     public boolean addDependsOnAndCalledByEdges(GraphNode graphNode1, GraphNode graphNode2) {
-        return dependencyGraph.putEdgeValue(graphNode1, graphNode2, DEPENDS_ON) && dependencyGraph.putEdgeValue(graphNode2, graphNode1, CALLED_BY);
+        logger.info("A new dependsOn edge and a new calledBy edge are added to the dependency matrix");
+        return dependencyGraph.putEdge(graphNode1, graphNode2) && dependencyGraph.putEdge(graphNode2, graphNode1);
+
+    }
+
+    public int order() {
+        return dependencyGraph.nodes().size();
     }
 
     public int size() {
-        return dependencyGraph.nodes().size();
+        return dependencyGraph.edges().size();
     }
 
     @Override

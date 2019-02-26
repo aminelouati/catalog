@@ -26,6 +26,8 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.service.dependencygraph.DependencyGraphHolder;
@@ -40,34 +42,35 @@ public class DependencyGraphTest {
 
      DependencyGraphHolder dependencyGraphHolder = DependencyGraphHolder.getInstance();
 
-    static int a = 10;
-
     @Test
     public void testAddNodeOK(){
         GraphNode graphNode1 = new GraphNode("bucket1", "wf1");
         GraphNode graphNode2 = new GraphNode("bucket2", "wf2");
+        // Add two nodes
         dependencyGraphHolder.addNode(graphNode1);
         dependencyGraphHolder.addNode(graphNode2);
-        assertThat(dependencyGraphHolder.size()).isEqualTo(2);
-        a++;
-        System.out.println("a= " + a);
-    }
+        assertThat(dependencyGraphHolder.order()).isEqualTo(2);
+        GraphNode graphNode11 = new GraphNode("bucket1", "wf1");
+        // Check that an existing node cannot be added to the dependency graph
+        dependencyGraphHolder.addNode(graphNode11);
+        assertThat(dependencyGraphHolder.order()).isEqualTo(2);
+        // Add a dependOn edge between graphNode1 and graphNode2 which adds systematically a calledBy edge between graphNode2 and graphNode1
+        assertTrue(dependencyGraphHolder.addDependsOnAndCalledByEdges(graphNode1, graphNode2));
 
-    @Test
-    public void testAddNodeKO(){
-        GraphNode graphNode1 = new GraphNode("bucket1", "wf1");
-        GraphNode graphNode2 = new GraphNode("bucket1", "wf1");
-        dependencyGraphHolder.addNode(graphNode1);
-        dependencyGraphHolder.addNode(graphNode2);
-        assertThat(dependencyGraphHolder.size()).isEqualTo(1);
-        a++;
-        System.out.println("a= " + a);
+        // Add 2 more nodes and 2 more depends on dependencies
+        GraphNode graphNode3 = new GraphNode("bucket3", "wf3");
+        GraphNode graphNode4 = new GraphNode("bucket4", "wf4");
+        dependencyGraphHolder.addNode(graphNode3);
+        dependencyGraphHolder.addNode(graphNode4);
+        assertTrue(dependencyGraphHolder.addDependsOnAndCalledByEdges(graphNode1, graphNode3));
+        assertTrue(dependencyGraphHolder.addDependsOnAndCalledByEdges(graphNode3, graphNode4));
 
-    }
+        assertThat(dependencyGraphHolder.size()).isEqualTo(6);
+        assertThat(dependencyGraphHolder.order()).isEqualTo(4);
 
-    @Test
-    public void testAddEdgeOK(){
 
         System.out.println(dependencyGraphHolder.toString());
+
     }
+
 }
